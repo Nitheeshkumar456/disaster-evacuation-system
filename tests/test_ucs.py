@@ -1,3 +1,4 @@
+import pytest
 import networkx as nx
 from modules.uniform_cost_search import uniform_cost_search, path_metrics
 from modules.cost_calculation import prepare_costs
@@ -21,6 +22,15 @@ def test_ucs_avoids_blocked_edge():
     graph.add_edge("C", "B", cost=2)
     result = uniform_cost_search(graph, "A", {"B"})
     assert result["path"] == ["A", "C", "B"]
+
+
+def test_ucs_rejects_negative_edges_before_returning_a_goal():
+    graph = nx.Graph()
+    graph.add_edge("A", "G", cost=1)
+    graph.add_edge("A", "B", cost=2)
+    graph.add_edge("B", "G", cost=-5)
+    with pytest.raises(ValueError, match="finite, non-negative"):
+        uniform_cost_search(graph, "A", {"G"})
 
 
 def test_cost_is_non_negative():

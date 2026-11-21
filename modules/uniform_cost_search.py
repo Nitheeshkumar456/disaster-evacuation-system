@@ -2,6 +2,7 @@
 from __future__ import annotations
 import heapq
 import itertools
+import math
 
 
 def uniform_cost_search(graph, start, goals, weight="cost"):
@@ -16,6 +17,13 @@ def uniform_cost_search(graph, start, goals, weight="cost"):
     goals &= set(graph.nodes)
     if not goals:
         return None
+
+    for _, _, attrs in graph.edges(data=True):
+        if attrs.get("blocked", False) or not attrs.get("available", True):
+            continue
+        edge_cost = float(attrs.get(weight, 1.0))
+        if not math.isfinite(edge_cost) or edge_cost < 0:
+            raise ValueError("Uniform-Cost Search requires finite, non-negative edge costs.")
 
     counter = itertools.count()
     frontier = [(0.0, next(counter), start)]
@@ -46,8 +54,6 @@ def uniform_cost_search(graph, start, goals, weight="cost"):
             if attrs.get("blocked", False) or not attrs.get("available", True):
                 continue
             edge_cost = float(attrs.get(weight, 1.0))
-            if edge_cost < 0:
-                raise ValueError("Uniform-Cost Search requires non-negative edge costs.")
             new_cost = cumulative_cost + edge_cost
             if new_cost < best_cost.get(neighbour, float("inf")):
                 best_cost[neighbour] = new_cost
